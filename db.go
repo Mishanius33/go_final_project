@@ -23,8 +23,8 @@ func createDatabase(dbPath string) error {
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             date DATE NOT NULL,
             title TEXT NOT NULL,
-            comment TEXT NOT NULL,
-            repeat VARCHAR(128) NOT NULL
+            comment TEXT,
+            repeat VARCHAR(128)
         )
     `
 	_, err = db.Exec(query)
