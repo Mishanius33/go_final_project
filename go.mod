@@ -1,6 +1,6 @@
-module go-final-project-1
+module go_final_project
 
-go 1.22.4
+go 1.22.0
 
 require (
 	github.com/jmoiron/sqlx v1.4.0
