@@ -49,5 +49,4 @@ func main() {
 		fmt.Printf("Ошибка запуска сервера: %v\n", err)
 		os.Exit(1)
 	}
-
 }
