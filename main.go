@@ -1,11 +1,16 @@
 package main
 
 import (
+	"database/sql"
 	"fmt"
 	"log"
 	"net/http"
 	"os"
 	"path/filepath"
+
+	"go_final_project/handlers"
+
+	_ "github.com/mattn/go-sqlite3"
 )
 
 func main() {
@@ -35,6 +40,12 @@ func main() {
 		fmt.Println("ДБ уже есть.")
 	}
 
+	db, err := sql.Open("sqlite3", dbPath)
+	if err != nil {
+		log.Fatalf("Ошибка подключения к ДБ: %v", err)
+	}
+	defer db.Close()
+
 	// Server
 	webDir := "./web"
 
@@ -42,6 +53,8 @@ func main() {
 	if todo_port == "" {
 		todo_port = "7540"
 	}
+
+	http.HandleFunc("/api/nextdate", handlers.NextDateHandler(db))
 
 	http.Handle("/", http.FileServer(http.Dir(webDir)))
 	err = http.ListenAndServe(":"+todo_port, nil)
