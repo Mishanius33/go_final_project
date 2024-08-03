@@ -11,21 +11,21 @@ func NextDateHandler(db *sql.DB) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		nowInString := r.URL.Query().Get("now")
 		if nowInString == "" {
-			http.Error(w, "now missing", http.StatusBadRequest)
+			http.Error(w, "отсутствует now", http.StatusBadRequest)
 			return
 		}
 		date := r.URL.Query().Get("date")
 		if date == "" {
-			http.Error(w, "date missing", http.StatusBadRequest)
+			http.Error(w, "отсутствует date", http.StatusBadRequest)
 			return
 		}
 		repeat := r.URL.Query().Get("repeat")
 		if repeat == "" {
-			http.Error(w, "repeat missing", http.StatusBadRequest)
+			http.Error(w, "отсутствует repeat", http.StatusBadRequest)
 			return
 		}
 
-		// Отбрасываем время из nowInString
+		// Отбрасываем время
 		now, err := time.Parse("20060102", nowInString)
 		if err != nil {
 			http.Error(w, "Время не может быть преобразовано в корректную дату", http.StatusBadRequest)

@@ -55,7 +55,7 @@ func main() {
 	}
 
 	http.HandleFunc("/api/nextdate", handlers.NextDateHandler(db))
-	http.HandleFunc("/api/task", handlers.AddTaskHandler(db))
+	http.HandleFunc("/api/task", handlers.TaskHandler(db))
 	http.HandleFunc("/api/tasks", handlers.GetTasksHandler(db))
 
 	http.Handle("/", http.FileServer(http.Dir(webDir)))

@@ -22,11 +22,6 @@ type taskResponse struct {
 
 func AddTaskHandler(db *sql.DB) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		if r.Method != http.MethodPost {
-			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
-			return
-		}
-
 		var task taskRequest
 		err := json.NewDecoder(r.Body).Decode(&task)
 		if err != nil {
@@ -35,7 +30,7 @@ func AddTaskHandler(db *sql.DB) http.HandlerFunc {
 		}
 
 		if task.Title == "" {
-			sendJSONResponse(w, taskResponse{Err: "Title is required"}, http.StatusBadRequest)
+			sendJSONResponse(w, taskResponse{Err: "Требуется title"}, http.StatusBadRequest)
 			return
 		}
 
@@ -45,7 +40,7 @@ func AddTaskHandler(db *sql.DB) http.HandlerFunc {
 		} else {
 			date, err = time.Parse("20060102", task.Date)
 			if err != nil {
-				sendJSONResponse(w, taskResponse{Err: "Date format is invalid"}, http.StatusBadRequest)
+				sendJSONResponse(w, taskResponse{Err: "Неверный формат даты"}, http.StatusBadRequest)
 				return
 			}
 		}
@@ -57,7 +52,7 @@ func AddTaskHandler(db *sql.DB) http.HandlerFunc {
 			} else {
 				nextDateStr, err := nextdate.NextDate(time.Now(), date.Format("20060102"), task.Repeat)
 				if err != nil {
-					sendJSONResponse(w, taskResponse{Err: "Invalid repeat format: " + task.Repeat}, http.StatusBadRequest)
+					sendJSONResponse(w, taskResponse{Err: "Неверный формат повторения: " + task.Repeat}, http.StatusBadRequest)
 					return
 				}
 				nextDate = nextDateStr
@@ -68,19 +63,20 @@ func AddTaskHandler(db *sql.DB) http.HandlerFunc {
 
 		res, err := db.Exec("INSERT INTO scheduler (date, title, comment, repeat) VALUES (?, ?, ?, ?)", nextDate, task.Title, task.Comment, task.Repeat)
 		if err != nil {
-			http.Error(w, "Error adding task: "+err.Error(), http.StatusInternalServerError)
+			http.Error(w, "Ошибка добавления задачи: "+err.Error(), http.StatusInternalServerError)
 			return
 		}
 
 		id, err := res.LastInsertId()
 		if err != nil {
-			http.Error(w, "Error getting insert ID: "+err.Error(), http.StatusInternalServerError)
+			http.Error(w, "Ошибка получения ID: "+err.Error(), http.StatusInternalServerError)
 			return
 		}
 
 		sendJSONResponse(w, taskResponse{ID: id}, http.StatusOK)
 	}
 }
+
 func sendJSONResponse(w http.ResponseWriter, data interface{}, statusCode int) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(statusCode)
