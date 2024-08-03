@@ -8,28 +8,47 @@ import (
 )
 
 func NextDate(now time.Time, date string, repeat string) (string, error) {
-	// Преобразование иходной даты
+	// Преобразование исходной даты
 	t, err := time.Parse("20060102", date)
 	if err != nil {
 		return "", fmt.Errorf("Ошибка преобразования даты: %v", err)
 	}
 
+	// Отбрасываем время из now
+	now = now.Truncate(24 * time.Hour)
+
 	// Проверка правила повторения
 	switch {
 	case repeat == "":
 		return "", fmt.Errorf("Правило повторения не указано")
+
 	case strings.HasPrefix(repeat, "d "):
 		days, err := strconv.Atoi(strings.TrimPrefix(repeat, "d "))
 		if err != nil || days < 1 || days > 400 {
 			return "", fmt.Errorf("Неверный формат правила повторения: %s", repeat)
 		}
-		for {
-			nextDate := t.AddDate(0, 0, days)
-			if nextDate.After(now) {
-				return nextDate.Format("20060102"), nil
-			}
-			t = nextDate
+
+		// Проверяю, совпадает ли исходная дата с текущей
+		if t.Equal(now) {
+			return t.Format("20060102"), nil
 		}
+
+		// Добавляю дату перед началом цикла
+		t = t.AddDate(0, 0, days)
+
+		// Проверяю, стала ли дата больше текущей
+		if t.After(now) {
+			return t.Format("20060102"), nil
+		}
+
+		// Если нет, начинаю цикл
+		for {
+			t = t.AddDate(0, 0, days)
+			if t.After(now) {
+				return t.Format("20060102"), nil
+			}
+		}
+
 	case repeat == "y":
 		for {
 			nextDate := t.AddDate(1, 0, 0)
@@ -38,6 +57,7 @@ func NextDate(now time.Time, date string, repeat string) (string, error) {
 			}
 			t = nextDate
 		}
+
 	case strings.HasPrefix(repeat, "w "):
 		weekdays := make(map[int]bool)
 		for _, wd := range strings.Split(strings.TrimPrefix(repeat, "w "), ",") {
@@ -53,6 +73,7 @@ func NextDate(now time.Time, date string, repeat string) (string, error) {
 				return t.Format("20060102"), nil
 			}
 		}
+
 	case strings.HasPrefix(repeat, "m "):
 		parts := strings.Split(strings.TrimPrefix(repeat, "m "), " ")
 		if len(parts) < 1 || len(parts) > 2 {

@@ -55,6 +55,7 @@ func main() {
 	}
 
 	http.HandleFunc("/api/nextdate", handlers.NextDateHandler(db))
+	http.HandleFunc("/api/task", handlers.AddTaskHandler(db))
 
 	http.Handle("/", http.FileServer(http.Dir(webDir)))
 	err = http.ListenAndServe(":"+todo_port, nil)

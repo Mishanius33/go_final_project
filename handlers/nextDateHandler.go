@@ -25,11 +25,13 @@ func NextDateHandler(db *sql.DB) http.HandlerFunc {
 			return
 		}
 
+		// Отбрасываем время из nowInString
 		now, err := time.Parse("20060102", nowInString)
 		if err != nil {
 			http.Error(w, "Время не может быть преобразовано в корректную дату", http.StatusBadRequest)
 			return
 		}
+		now = now.Truncate(24 * time.Hour)
 
 		nextDate, err := nextdate.NextDate(now, date, repeat)
 		if err != nil {
