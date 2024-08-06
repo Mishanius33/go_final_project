@@ -8,7 +8,7 @@ import (
 	"os"
 	"path/filepath"
 
-	"go_final_project/handlers"
+	"github.com/mishanius33/go_final_project/handlers"
 
 	_ "github.com/mattn/go-sqlite3"
 )

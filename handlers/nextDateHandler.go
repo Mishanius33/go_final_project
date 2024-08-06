@@ -2,9 +2,10 @@ package handlers
 
 import (
 	"database/sql"
-	"go_final_project/nextdate"
 	"net/http"
 	"time"
+
+	"github.com/mishanius33/go_final_project/nextdate"
 )
 
 func NextDateHandler(db *sql.DB) http.HandlerFunc {

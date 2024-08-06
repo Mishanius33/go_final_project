@@ -6,23 +6,18 @@ import (
 	"net/http"
 	"time"
 
-	"go_final_project/nextdate"
-	"go_final_project/task"
+	"github.com/mishanius33/go_final_project/nextdate"
+	"github.com/mishanius33/go_final_project/task"
 )
 
 var tasks []TaskEntity
 
 func TaskDoneHandler(db *sql.DB) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		if r.Method != http.MethodPost {
-			w.WriteHeader(http.StatusMethodNotAllowed)
-			return
-		}
-
 		idStr := r.URL.Query().Get("id")
 		if idStr == "" {
 			w.WriteHeader(http.StatusBadRequest)
-			json.NewEncoder(w).Encode(map[string]string{"error": "missing task ID"})
+			json.NewEncoder(w).Encode(map[string]string{"error": "Нет task ID"})
 			return
 		}
 
@@ -30,7 +25,7 @@ func TaskDoneHandler(db *sql.DB) http.HandlerFunc {
 		if err != nil {
 			if err == sql.ErrNoRows {
 				w.WriteHeader(http.StatusNotFound)
-				json.NewEncoder(w).Encode(map[string]string{"error": "task not found"})
+				json.NewEncoder(w).Encode(map[string]string{"error": "Задача не найдена"})
 				return
 			}
 			w.WriteHeader(http.StatusInternalServerError)

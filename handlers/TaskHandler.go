@@ -4,7 +4,7 @@ import (
 	"database/sql"
 	"net/http"
 
-	"go_final_project/task"
+	"github.com/mishanius33/go_final_project/task"
 )
 
 func TaskHandler(db *sql.DB) http.HandlerFunc {
@@ -28,6 +28,8 @@ func TaskHandler(db *sql.DB) http.HandlerFunc {
 			AddTaskHandler(db)(w, r)
 		case http.MethodPut:
 			EditTaskHandler(db)(w, r)
+		case http.MethodDelete:
+			DeleteTaskHandler(db)(w, r)
 		}
 	}
 }

@@ -6,7 +6,7 @@ import (
 	"net/http"
 	"time"
 
-	"go_final_project/nextdate"
+	"github.com/mishanius33/go_final_project/nextdate"
 )
 
 type TaskEntity struct {

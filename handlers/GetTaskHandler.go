@@ -5,7 +5,7 @@ import (
 	"encoding/json"
 	"net/http"
 
-	"go_final_project/task"
+	"github.com/mishanius33/go_final_project/task"
 
 	_ "github.com/mattn/go-sqlite3"
 )

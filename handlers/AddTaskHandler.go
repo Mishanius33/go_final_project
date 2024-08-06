@@ -3,9 +3,10 @@ package handlers
 import (
 	"database/sql"
 	"encoding/json"
-	"go_final_project/nextdate"
 	"net/http"
 	"time"
+
+	"github.com/mishanius33/go_final_project/nextdate"
 )
 
 type taskRequest struct {
