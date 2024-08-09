@@ -41,7 +41,6 @@ func TaskDoneHandler(db *sql.DB) http.HandlerFunc {
 			return
 		}
 
-		t.Done = true
 		if t.Repeat != "" {
 			nextDate, err := nextdate.NextDate(time.Now(), t.Date, t.Repeat)
 			if err != nil {
@@ -49,8 +48,13 @@ func TaskDoneHandler(db *sql.DB) http.HandlerFunc {
 				json.NewEncoder(w).Encode(map[string]string{"error": err.Error()})
 				return
 			}
-			t.Date = nextDate
-			err = UpdateTask(db, t)
+			err = UpdateTask(db, TaskEntity{
+				ID:      t.ID,
+				Date:    nextDate,
+				Title:   t.Title,
+				Comment: t.Comment,
+				Repeat:  t.Repeat,
+			})
 		} else {
 			err = DeleteTask(db, t.ID)
 		}
@@ -66,14 +70,14 @@ func TaskDoneHandler(db *sql.DB) http.HandlerFunc {
 }
 
 func UpdateTask(db *sql.DB, task TaskEntity) error {
-	query := "UPDATE scheduler SET date = ?, title = ?, comment = ?, repeat = ?, done = ? WHERE id = ?"
+	query := "UPDATE scheduler SET date = ?, title = ?, comment = ?, repeat = ? WHERE id = ?"
 	stmt, err := db.Prepare(query)
 	if err != nil {
 		return err
 	}
 	defer stmt.Close()
 
-	_, err = stmt.Exec(task.Date, task.Title, task.Comment, task.Repeat, task.Done, task.ID)
+	_, err = stmt.Exec(task.Date, task.Title, task.Comment, task.Repeat, task.ID)
 	if err != nil {
 		return err
 	}

@@ -2,6 +2,7 @@ package nextdate
 
 import (
 	"fmt"
+	"log"
 	"strconv"
 	"strings"
 	"time"
@@ -28,9 +29,12 @@ func NextDate(now time.Time, date string, repeat string) (string, error) {
 			return "", fmt.Errorf("Неверный формат правила повторения: %s", repeat)
 		}
 
+		log.Printf("Начальная дата: %s, правило повторения: %d дней\n", t.Format("20060102"), days)
+
 		// Проверяю, совпадает ли исходная дата с текущей
 		if t.Equal(now) {
-			return t.Format("20060102"), nil
+			log.Printf("Дата совпадает с текущей: %s\n", t.Format("20060102"))
+			return now.AddDate(0, 0, days).Format("20060102"), nil
 		}
 
 		// Добавляю дату перед началом цикла
@@ -38,6 +42,7 @@ func NextDate(now time.Time, date string, repeat string) (string, error) {
 
 		// Проверяю, стала ли дата больше текущей
 		if t.After(now) {
+			log.Printf("Дата сьала больше текущей: %s\n", t.Format("20060102"))
 			return t.Format("20060102"), nil
 		}
 
@@ -45,6 +50,7 @@ func NextDate(now time.Time, date string, repeat string) (string, error) {
 		for {
 			t = t.AddDate(0, 0, days)
 			if t.After(now) {
+				log.Printf("Дата после цикла: %s\n", t.Format("20060102"))
 				return t.Format("20060102"), nil
 			}
 		}
@@ -74,54 +80,6 @@ func NextDate(now time.Time, date string, repeat string) (string, error) {
 			}
 		}
 
-	case strings.HasPrefix(repeat, "m "):
-		parts := strings.Split(strings.TrimPrefix(repeat, "m "), " ")
-		if len(parts) < 1 || len(parts) > 2 {
-			return "", fmt.Errorf("Неверный формат правила повторения: %s", repeat)
-		}
-		days := make([]int, 0, len(parts[0]))
-		for _, d := range strings.Split(parts[0], ",") {
-			var day int
-			if d == "-1" {
-				day = -1
-			} else if d == "-2" {
-				day = -2
-			} else {
-				day, err = strconv.Atoi(d)
-				if err != nil || (day != -1 && day != -2 && (day < 1 || day > 31)) {
-					return "", fmt.Errorf("Неверный формат правила повторения: %s", repeat)
-				}
-			}
-			days = append(days, day)
-		}
-		months := make([]int, 0, 12)
-		if len(parts) == 2 {
-			for _, m := range strings.Split(parts[1], ",") {
-				month, err := strconv.Atoi(m)
-				if err != nil || month < 1 || month > 12 {
-					return "", fmt.Errorf("Неверный формат правила повторения: %s", repeat)
-				}
-				months = append(months, month)
-			}
-		} else {
-			for i := 1; i <= 12; i++ {
-				months = append(months, i)
-			}
-		}
-		for {
-			for _, m := range months {
-				for _, d := range days {
-					nextDate := time.Date(t.Year(), time.Month(m), d, 0, 0, 0, 0, t.Location())
-					if d < 0 {
-						nextDate = nextDate.AddDate(0, 1, 0).AddDate(0, 0, d)
-					}
-					if nextDate.After(now) {
-						return nextDate.Format("20060102"), nil
-					}
-				}
-			}
-			t = t.AddDate(0, 1, 0)
-		}
 	default:
 		return "", fmt.Errorf("Неверный формат правила повторения: %s", repeat)
 	}

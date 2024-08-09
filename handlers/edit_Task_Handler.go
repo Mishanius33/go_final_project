@@ -15,7 +15,6 @@ type TaskEntity struct {
 	Title   string `json:"title"`
 	Comment string `json:"comment"`
 	Repeat  string `json:"repeat"`
-	Done    bool   `json:"done"`
 }
 
 func EditTaskHandler(db *sql.DB) http.HandlerFunc {
