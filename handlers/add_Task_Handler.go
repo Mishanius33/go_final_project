@@ -36,7 +36,7 @@ func AddTaskHandler(db *sql.DB) http.HandlerFunc {
 		}
 
 		var date time.Time
-		if task.Date == "" {
+		if task.Date == "" || task.Date == time.Now().Format("20060102") {
 			date = time.Now()
 		} else {
 			date, err = time.Parse("20060102", task.Date)
