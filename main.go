@@ -1,66 +1,35 @@
 package main
 
 import (
-	"database/sql"
 	"fmt"
-	"log"
 	"net/http"
 	"os"
-	"path/filepath"
 
-	"github.com/mishanius33/go_final_project/handlers"
+	"github.com/mishanius33/go_final_project/common"
+	"github.com/mishanius33/go_final_project/storage"
 
 	_ "github.com/mattn/go-sqlite3"
 )
 
 func main() {
 
-	// DB
-	// Путь к базе данных - задание со звездочкой
-	TODO_DBFILE := os.Getenv("TODO_DBFILE")
-	if TODO_DBFILE == "" {
-		TODO_DBFILE = "scheduler.db"
-	}
-
-	appDir, err := os.Getwd()
-	if err != nil {
-		log.Fatalf("Ошибка при получении директории: %v", err)
-	}
-	dbPath := filepath.Join(appDir, TODO_DBFILE)
-
-	// Проверка существования дб, если нет - создаем
-	if _, err := os.Stat(dbPath); os.IsNotExist(err) {
-
-		err = createDatabase(dbPath)
-		if err != nil {
-			log.Fatalf("Ошибка создания ДБ: %v", err)
-		}
-		fmt.Println("ДБ создана успешно.")
-	} else {
-		fmt.Println("ДБ уже есть.")
-	}
-
-	db, err := sql.Open("sqlite3", dbPath)
-	if err != nil {
-		log.Fatalf("Ошибка подключения к ДБ: %v", err)
-	}
-	defer db.Close()
+	db, err := storage.NewStorage()
 
 	// Server
 	webDir := "./web"
 
-	todo_port := os.Getenv("TODO_PORT")
-	if todo_port == "" {
-		todo_port = "7540"
+	todoPort := os.Getenv("TODO_PORT")
+	if todoPort == "" {
+		todoPort = common.Port
 	}
 
-	http.HandleFunc("/api/nextdate", handlers.NextDateHandler(db))
-	http.HandleFunc("/api/task", handlers.TaskHandler(db))
-	http.HandleFunc("/api/tasks", handlers.GetTasksHandler(db))
-	http.HandleFunc("/api/task/done", handlers.TaskDoneHandler(db))
+	http.HandleFunc("/api/nextdate", storage.NextDateHandler(db))
+	http.HandleFunc("/api/task", storage.TaskHandler(db))
+	http.HandleFunc("/api/tasks", storage.GetTasksHandler(db))
+	http.HandleFunc("/api/task/done", storage.TaskDoneHandler(db))
 
 	http.Handle("/", http.FileServer(http.Dir(webDir)))
-	err = http.ListenAndServe(":"+todo_port, nil)
+	err = http.ListenAndServe(":"+todoPort, nil)
 	if err != nil {
 		fmt.Printf("Ошибка запуска сервера: %v\n", err)
 		os.Exit(1)

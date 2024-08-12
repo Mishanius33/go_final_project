@@ -6,17 +6,19 @@ import (
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/mishanius33/go_final_project/common"
 )
 
 func NextDate(now time.Time, date string, repeat string) (string, error) {
 	// Преобразование исходной даты
-	t, err := time.Parse("20060102", date)
+	t, err := time.Parse(common.DateFormat, date)
 	if err != nil {
 		return "", fmt.Errorf("Ошибка преобразования даты: %v", err)
 	}
 
 	// Отбрасываем время из now
-	now = now.Truncate(24 * time.Hour)
+	now = now.Truncate(common.HoursPerDay * time.Hour)
 
 	// Проверка правила повторения
 	switch {
@@ -29,12 +31,12 @@ func NextDate(now time.Time, date string, repeat string) (string, error) {
 			return "", fmt.Errorf("Неверный формат правила повторения: %s", repeat)
 		}
 
-		log.Printf("Начальная дата: %s, правило повторения: %d дней\n", t.Format("20060102"), days)
+		log.Printf("Начальная дата: %s, правило повторения: %d дней\n", t.Format(common.DateFormat), days)
 
 		// Проверяю, совпадает ли исходная дата с текущей
 		if t.Equal(now) {
-			log.Printf("Дата совпадает с текущей: %s\n", t.Format("20060102"))
-			return now.AddDate(0, 0, days).Format("20060102"), nil
+			log.Printf("Дата совпадает с текущей: %s\n", t.Format(common.DateFormat))
+			return now.AddDate(0, 0, days).Format(common.DateFormat), nil
 		}
 
 		// Добавляю дату перед началом цикла
@@ -42,16 +44,16 @@ func NextDate(now time.Time, date string, repeat string) (string, error) {
 
 		// Проверяю, стала ли дата больше текущей
 		if t.After(now) {
-			log.Printf("Дата сьала больше текущей: %s\n", t.Format("20060102"))
-			return t.Format("20060102"), nil
+			log.Printf("Дата сьала больше текущей: %s\n", t.Format(common.DateFormat))
+			return t.Format(common.DateFormat), nil
 		}
 
 		// Если нет, начинаю цикл
 		for {
 			t = t.AddDate(0, 0, days)
 			if t.After(now) {
-				log.Printf("Дата после цикла: %s\n", t.Format("20060102"))
-				return t.Format("20060102"), nil
+				log.Printf("Дата после цикла: %s\n", t.Format(common.DateFormat))
+				return t.Format(common.DateFormat), nil
 			}
 		}
 
@@ -59,7 +61,7 @@ func NextDate(now time.Time, date string, repeat string) (string, error) {
 		for {
 			nextDate := t.AddDate(1, 0, 0)
 			if nextDate.After(now) {
-				return nextDate.Format("20060102"), nil
+				return nextDate.Format(common.DateFormat), nil
 			}
 			t = nextDate
 		}
@@ -76,7 +78,7 @@ func NextDate(now time.Time, date string, repeat string) (string, error) {
 		for {
 			t = t.AddDate(0, 0, 1)
 			if weekdays[int(t.Weekday())+1] {
-				return t.Format("20060102"), nil
+				return t.Format(common.DateFormat), nil
 			}
 		}
 

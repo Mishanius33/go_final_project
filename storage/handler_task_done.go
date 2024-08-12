@@ -1,4 +1,4 @@
-package handlers
+package storage
 
 import (
 	"database/sql"
@@ -6,13 +6,13 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/mishanius33/go_final_project/common"
 	"github.com/mishanius33/go_final_project/nextdate"
-	"github.com/mishanius33/go_final_project/task"
 )
 
-var tasks []TaskEntity
+var tasks []common.TaskEntity
 
-func TaskDoneHandler(db *sql.DB) http.HandlerFunc {
+func TaskDoneHandler(s *Storage) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		idStr := r.URL.Query().Get("id")
 		if idStr == "" {
@@ -22,7 +22,7 @@ func TaskDoneHandler(db *sql.DB) http.HandlerFunc {
 			return
 		}
 
-		resp, _, err := task.GetTaskByID(db, idStr)
+		resp, _, err := GetTaskByID(s, idStr)
 		if err != nil {
 			if err == sql.ErrNoRows {
 				w.WriteHeader(http.StatusNotFound)
@@ -36,7 +36,7 @@ func TaskDoneHandler(db *sql.DB) http.HandlerFunc {
 			return
 		}
 
-		var t TaskEntity
+		var t common.TaskEntity
 		err = json.Unmarshal(resp, &t)
 		if err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
@@ -53,7 +53,7 @@ func TaskDoneHandler(db *sql.DB) http.HandlerFunc {
 				json.NewEncoder(w).Encode(map[string]string{"error": err.Error()})
 				return
 			}
-			err = UpdateTask(db, TaskEntity{
+			err = UpdateTaskForDone(s, common.TaskEntity{
 				ID:      t.ID,
 				Date:    nextDate,
 				Title:   t.Title,
@@ -61,7 +61,7 @@ func TaskDoneHandler(db *sql.DB) http.HandlerFunc {
 				Repeat:  t.Repeat,
 			})
 		} else {
-			err = DeleteTask(db, t.ID)
+			err = DeleteTask(s, t.ID)
 		}
 		if err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
@@ -76,31 +76,15 @@ func TaskDoneHandler(db *sql.DB) http.HandlerFunc {
 	}
 }
 
-func UpdateTask(db *sql.DB, task TaskEntity) error {
+func UpdateTaskForDone(s *Storage, task common.TaskEntity) error {
 	query := "UPDATE scheduler SET date = ?, title = ?, comment = ?, repeat = ? WHERE id = ?"
-	stmt, err := db.Prepare(query)
+	stmt, err := s.db.Prepare(query)
 	if err != nil {
 		return err
 	}
 	defer stmt.Close()
 
 	_, err = stmt.Exec(task.Date, task.Title, task.Comment, task.Repeat, task.ID)
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func DeleteTask(db *sql.DB, taskID string) error {
-	query := "DELETE FROM scheduler WHERE id = ?"
-	stmt, err := db.Prepare(query)
-	if err != nil {
-		return err
-	}
-	defer stmt.Close()
-
-	_, err = stmt.Exec(taskID)
 	if err != nil {
 		return err
 	}
