@@ -1,16 +1,18 @@
-package storage
+package handlers
 
 import (
 	"net/http"
+
+	"github.com/mishanius33/go_final_project/storage"
 )
 
-func TaskHandler(s *Storage) http.HandlerFunc {
+func TaskHandler(s *storage.Storage) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		switch r.Method {
 		case http.MethodGet:
 			id := r.URL.Query().Get("id")
 			if id != "" {
-				data, status, err := GetTaskByID(s, id)
+				data, status, err := s.GetTaskByID(id)
 				if err != nil {
 					http.Error(w, string(data), status)
 					return

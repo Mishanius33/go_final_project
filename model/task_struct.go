@@ -1,4 +1,4 @@
-package common
+package model
 
 type TaskEntity struct {
 	ID      string `json:"id"`

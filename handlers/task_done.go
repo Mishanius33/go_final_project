@@ -1,4 +1,4 @@
-package storage
+package handlers
 
 import (
 	"database/sql"
@@ -6,13 +6,12 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/mishanius33/go_final_project/common"
+	"github.com/mishanius33/go_final_project/model"
 	"github.com/mishanius33/go_final_project/nextdate"
+	"github.com/mishanius33/go_final_project/storage"
 )
 
-var tasks []common.TaskEntity
-
-func TaskDoneHandler(s *Storage) http.HandlerFunc {
+func TaskDoneHandler(s *storage.Storage) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		idStr := r.URL.Query().Get("id")
 		if idStr == "" {
@@ -22,7 +21,7 @@ func TaskDoneHandler(s *Storage) http.HandlerFunc {
 			return
 		}
 
-		resp, _, err := GetTaskByID(s, idStr)
+		resp, _, err := s.GetTaskByID(idStr)
 		if err != nil {
 			if err == sql.ErrNoRows {
 				w.WriteHeader(http.StatusNotFound)
@@ -36,7 +35,7 @@ func TaskDoneHandler(s *Storage) http.HandlerFunc {
 			return
 		}
 
-		var t common.TaskEntity
+		var t model.TaskEntity
 		err = json.Unmarshal(resp, &t)
 		if err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
@@ -53,7 +52,7 @@ func TaskDoneHandler(s *Storage) http.HandlerFunc {
 				json.NewEncoder(w).Encode(map[string]string{"error": err.Error()})
 				return
 			}
-			err = UpdateTaskForDone(s, common.TaskEntity{
+			err = s.UpdateTaskForDone(model.TaskEntity{
 				ID:      t.ID,
 				Date:    nextDate,
 				Title:   t.Title,
@@ -61,7 +60,7 @@ func TaskDoneHandler(s *Storage) http.HandlerFunc {
 				Repeat:  t.Repeat,
 			})
 		} else {
-			err = DeleteTask(s, t.ID)
+			err = s.DeleteTask(t.ID)
 		}
 		if err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
@@ -74,20 +73,4 @@ func TaskDoneHandler(s *Storage) http.HandlerFunc {
 		w.Header().Set("Content-Type", "application/json")
 		json.NewEncoder(w).Encode(struct{}{})
 	}
-}
-
-func UpdateTaskForDone(s *Storage, task common.TaskEntity) error {
-	query := "UPDATE scheduler SET date = ?, title = ?, comment = ?, repeat = ? WHERE id = ?"
-	stmt, err := s.db.Prepare(query)
-	if err != nil {
-		return err
-	}
-	defer stmt.Close()
-
-	_, err = stmt.Exec(task.Date, task.Title, task.Comment, task.Repeat, task.ID)
-	if err != nil {
-		return err
-	}
-
-	return nil
 }

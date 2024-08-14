@@ -1,13 +1,15 @@
-package storage
+package handlers
 
 import (
 	"encoding/json"
 	"log"
 	"net/http"
 	"strconv"
+
+	"github.com/mishanius33/go_final_project/storage"
 )
 
-func DeleteTaskHandler(s *Storage) http.HandlerFunc {
+func DeleteTaskHandler(s *storage.Storage) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 		id := r.URL.Query().Get("id")
@@ -19,7 +21,7 @@ func DeleteTaskHandler(s *Storage) http.HandlerFunc {
 			return
 		}
 
-		err = DeleteTask(s, id)
+		err = s.DeleteTask(id)
 		if err != nil {
 			log.Println("Не удалось удалить задачу")
 			json.NewEncoder(w).Encode(map[string]string{"error": err.Error()})

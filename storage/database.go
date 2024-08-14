@@ -7,12 +7,16 @@ import (
 	"path/filepath"
 
 	_ "github.com/mattn/go-sqlite3"
-	"github.com/mishanius33/go_final_project/common"
 )
 
 type Storage struct {
 	db *sql.DB
 }
+
+const (
+	DbFile = "scheduler.db"
+	Port   = "7540"
+)
 
 func NewStorage() (*Storage, error) {
 	storage := &Storage{}
@@ -29,15 +33,15 @@ func NewStorage() (*Storage, error) {
 func (s *Storage) initDB() error {
 	var err error
 
-	err = CreateDatabase(common.DbFile)
+	err = CreateDatabase(DbFile)
 	if err != nil {
 		return err
 	}
 
-	db, err := sql.Open("sqlite3", common.DbFile)
+	db, err := sql.Open("sqlite3", DbFile)
 
 	if err != nil {
-		return fmt.Errorf("can't open db %s: %w", common.DbFile, err)
+		return fmt.Errorf("can't open db %s: %w", DbFile, err)
 	}
 
 	err = CreateTableAndIdx(db)
@@ -54,7 +58,7 @@ func (s *Storage) initDB() error {
 func CreateDatabase(dbPath string) error {
 	todoDBFile := os.Getenv("TODO_DBFILE")
 	if todoDBFile == "" {
-		todoDBFile = common.DbFile
+		todoDBFile = DbFile
 	}
 
 	appPath, err := os.Executable()
