@@ -15,12 +15,12 @@ func AddTaskHandler(s *storage.Storage) http.HandlerFunc {
 		var task model.TaskRequest
 		err := json.NewDecoder(r.Body).Decode(&task)
 		if err != nil {
-			sendJSONResponse(w, model.TaskResponse{Err: "Ошибка JSON: " + err.Error()}, http.StatusBadRequest)
+			respondWithError(w, http.StatusBadRequest, "Ошибка JSON: "+err.Error())
 			return
 		}
 
 		if task.Title == "" {
-			sendJSONResponse(w, model.TaskResponse{Err: "Требуется title"}, http.StatusBadRequest)
+			respondWithError(w, http.StatusBadRequest, "Требуется title")
 			return
 		}
 
@@ -30,7 +30,7 @@ func AddTaskHandler(s *storage.Storage) http.HandlerFunc {
 		} else {
 			date, err = time.Parse(DateFormat, task.Date)
 			if err != nil {
-				sendJSONResponse(w, model.TaskResponse{Err: "Неверный формат даты"}, http.StatusBadRequest)
+				respondWithError(w, http.StatusBadRequest, "Неверный формат даты")
 				return
 			}
 		}
@@ -42,7 +42,7 @@ func AddTaskHandler(s *storage.Storage) http.HandlerFunc {
 			} else {
 				nextDateStr, err := nextdate.NextDate(time.Now(), date.Format(DateFormat), task.Repeat)
 				if err != nil {
-					sendJSONResponse(w, model.TaskResponse{Err: "Неверный формат повторения: " + task.Repeat}, http.StatusBadRequest)
+					respondWithError(w, http.StatusBadRequest, "Неверный формат повторения: "+task.Repeat)
 					return
 				}
 				nextDate = nextDateStr
@@ -53,10 +53,10 @@ func AddTaskHandler(s *storage.Storage) http.HandlerFunc {
 
 		id, err := s.InsertTask(nextDate, task.Title, task.Comment, task.Repeat)
 		if err != nil {
-			sendJSONResponse(w, model.TaskResponse{Err: "Ошибка добавления задачи: " + err.Error()}, http.StatusInternalServerError)
+			respondWithError(w, http.StatusInternalServerError, "Ошибка добавления задачи: "+err.Error())
 			return
 		}
 
-		sendJSONResponse(w, model.TaskResponse{ID: id}, http.StatusOK)
+		respondWithJSON(w, http.StatusOK, model.TaskResponse{ID: id})
 	}
 }

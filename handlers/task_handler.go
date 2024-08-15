@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"errors"
 	"net/http"
 
 	"github.com/mishanius33/go_final_project/storage"
@@ -12,21 +13,19 @@ func TaskHandler(s *storage.Storage) http.HandlerFunc {
 		case http.MethodGet:
 			id := r.URL.Query().Get("id")
 			if id != "" {
-				data, status, err := s.GetTaskByID(id)
+				task, err := s.GetTaskByID(id)
 				if err != nil {
-					http.Error(w, string(data), status)
+					if errors.Is(err, ErrTaskNotFound) {
+						respondWithError(w, http.StatusNotFound, "Задача не найдена")
+					} else {
+						respondWithError(w, http.StatusInternalServerError, "Внутренняя ошибка сервера")
+					}
 					return
 				}
-				w.Header().Set("Content-Type", "application/json; charset=UTF-8")
-				w.WriteHeader(status)
 
-				_, err = w.Write(data)
-				if err != nil {
-					http.Error(w, "Ошибка ответа", http.StatusInternalServerError)
-					return
-				}
+				respondWithJSON(w, http.StatusOK, task)
 			} else {
-				http.Error(w, `{"error": "Идентификатор не указан"}`, http.StatusBadRequest)
+				respondWithError(w, http.StatusBadRequest, "Идентификатор не указан")
 			}
 		case http.MethodPost:
 			AddTaskHandler(s)(w, r)

@@ -2,10 +2,9 @@ package storage
 
 import (
 	"database/sql"
-	"encoding/json"
 	"errors"
+	"fmt"
 	"log"
-	"net/http"
 
 	"github.com/mishanius33/go_final_project/model"
 )
@@ -84,23 +83,18 @@ func (s *Storage) GetTasks(id string) (model.TaskEntity, error) {
 	return t, nil
 }
 
-func (s *Storage) GetTaskByID(id string) ([]byte, int, error) {
+func (s *Storage) GetTaskByID(id string) (*model.TaskEntity, error) {
 	var t model.TaskEntity
 	query := "SELECT id, date, title, comment, repeat FROM scheduler WHERE id = ?"
 	row := s.db.QueryRow(query, id)
 	err := row.Scan(&t.ID, &t.Date, &t.Title, &t.Comment, &t.Repeat)
 	if err != nil {
 		if err == sql.ErrNoRows {
-			return []byte(`{"error": "Задача не найдена"}`), http.StatusNotFound, nil
+			return nil, fmt.Errorf("task not found")
 		}
-		return nil, http.StatusInternalServerError, err
+		return nil, err
 	}
-
-	response, err := json.Marshal(t)
-	if err != nil {
-		return nil, http.StatusInternalServerError, err
-	}
-	return response, http.StatusOK, nil
+	return &t, nil
 }
 
 func (s *Storage) DeleteTask(taskID string) error {

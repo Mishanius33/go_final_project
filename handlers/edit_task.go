@@ -15,17 +15,18 @@ func EditTaskHandler(s *storage.Storage) http.HandlerFunc {
 		var task model.TaskEntity
 		err := json.NewDecoder(r.Body).Decode(&task)
 		if err != nil {
-			sendJSONResponse(w, map[string]string{"error": "Ошибка при декодировании JSON: " + err.Error()}, http.StatusBadRequest)
+			respondWithError(w, http.StatusBadRequest, "Ошибка при декодировании JSON: "+err.Error())
 			return
 		}
 
 		if task.ID == "" {
-			sendJSONResponse(w, map[string]string{"error": "ID задачи не указан"}, http.StatusBadRequest)
+			respondWithError(w, http.StatusBadRequest, "ID задачи не указан")
 			return
 		}
 
 		if task.Title == "" {
-			sendJSONResponse(w, map[string]string{"error": "Заголовок задачи не указан"}, http.StatusBadRequest)
+			respondWithError(w, http.StatusBadRequest, "Заголовок задачи не указан")
+
 			return
 		}
 
@@ -35,14 +36,14 @@ func EditTaskHandler(s *storage.Storage) http.HandlerFunc {
 		} else {
 			date, err = time.Parse(DateFormat, task.Date)
 			if err != nil {
-				sendJSONResponse(w, map[string]string{"error": "Некорректный формат даты"}, http.StatusBadRequest)
+				respondWithError(w, http.StatusBadRequest, "Некорректный формат даты")
 				return
 			}
 		}
 
 		nextDateStr, err := nextdate.NextDate(time.Now(), date.Format(DateFormat), task.Repeat)
 		if err != nil {
-			sendJSONResponse(w, map[string]string{"error": "Некорректный формат повтора: " + task.Repeat}, http.StatusBadRequest)
+			respondWithError(w, http.StatusBadRequest, "Некорректный формат повтора: "+task.Repeat)
 			return
 		}
 
@@ -54,10 +55,10 @@ func EditTaskHandler(s *storage.Storage) http.HandlerFunc {
 			Repeat:  task.Repeat,
 		})
 		if err != nil {
-			sendJSONResponse(w, map[string]string{"error": "Ошибка при обновлении задачи: " + err.Error()}, http.StatusInternalServerError)
+			respondWithError(w, http.StatusInternalServerError, "Ошибка при обновлении задачи: "+err.Error())
 			return
 		}
 
-		sendJSONResponse(w, map[string]interface{}{}, http.StatusOK)
+		respondWithJSON(w, http.StatusOK, map[string]interface{}{})
 	}
 }
